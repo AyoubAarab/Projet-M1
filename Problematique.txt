@@ -1,0 +1,2 @@
+PROBLEMATIQUE DE PARTIE I : Quand le modèle de Cox ne peut pas être utilisé, qu'est-ce qu'on
+peut faire pour s'en servir d'une façon fiable ?
