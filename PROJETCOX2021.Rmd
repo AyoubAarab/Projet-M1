@@ -1,0 +1,176 @@
+---
+title: "ProjetCox"
+author: "Zakaria LAABSI"
+date: "03/03/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+library(survival)
+library(survminer)
+library(ggplot2)
+library(ggpubr)
+data(gbsg) #Breast cancer data sets used in Royston and Altman (2013)
+
+
+```
+
+The gbsg data set contains patient records from a 1984-1989 trial conducted by the German Breast Cancer Study Group (GBSG) of 720 patients with node positive breast cancer; it retains the 686 patients with complete data for the prognostic variables.
+
+pid
+patient identifier
+
+age
+age
+
+meno
+menopausal status (0= premenopausal, 1= postmenopausal)
+
+size
+tumor size
+
+grade
+tumor grade
+
+nodes
+number of positive lymph nodes
+
+pgr
+progesterone receptors (fmol/l)
+
+er
+estrogen receptors (fmol/l)
+
+hormon
+hormonal therapy, 0= no, 1= yes
+
+rfstime
+recurrnece free survival time; days to first of reccurence, death or last follow-up
+
+status
+0= alive without recurrence, 1= recurrence or death
+
+
+```{r}
+```
+
+
+```{r}
+strata.size <- cut(gbsg$size,breaks=c(0,20,60, Inf))
+
+z<- survfit(Surv(rfstime, status) ~ strata.size, type = "kaplan-meier", conf.type = "plain", gbsg)
+ggsurvplot(z, data = gbsg)
+ggsurvplot(z, fun = "cloglog", data = gbsg, xlim=c(50,5000))
+```
+```{r}
+paramc <- survreg(Surv(rfstime, status) ~ size < 60, gbsg)
+```
+
+
+
+```{r}
+fitall<- coxph(Surv(rfstime, status) ~ age + meno + pgr + size + grade + nodes + pgr + er + hormon, data = gbsg)
+ftestall<- cox.zph(fitall)
+ftestall
+
+```
+
+
+```{r}
+fitall
+```
+
+
+
+
+```{r}
+
+#Représentation graphique des résidus de Schoenfeld
+
+strata.size <- cut(gbsg$size,breaks=c(20,60,100,Inf))
+
+fit<- coxph(Surv(rfstime, status) ~ size, data = gbsg)
+ftest<- cox.zph(fit, transform = "identity")
+plot(ftest, ylim = c(-0.1,0.2), var="size", resid=TRUE)
+abline(h=0,lty=3)
+abline(h=fit$coefficients["size"], lty=2, lw=2, col="blue")
+
+```
+```{r}
+strata.age <- cut(gbsg$age,breaks=c(20,60,100,Inf))
+
+fit<- coxph(Surv(rfstime, status) ~ age, data = gbsg)
+ftest<- cox.zph(fit, transform = "identity")
+plot(ftest, ylim = c(-0.1,0.2), var="age", resid=TRUE)
+abline(h=0,lty=3)
+abline(h=fit$coefficients["age"], lty=2, lw=2, col="blue")
+
+```
+
+
+
+
+
+Vérification de l'hypothèse des risques proportionnel à partir du tracé des résidus de Schoenfeld car les coeffcients des variables sont significativement non nuls
+
+```{r}
+ggcoxzph(ftest, ylim = c(-0.2,0.3))
+
+
+```
+```{r}
+
+fit<- coxph(Surv(rfstime, status) ~ size, data = gbsg, ties = "efron")
+residus <- resid(fit)
+
+
+plot(residus, x=gbsg$size, xlab='', ylab ="Résidus de martingale", cex=0.75, ylim=c(-1,1))
+lines(lowess(x= gbsg$size ,y=residus,iter=0),lty=2 , col="red")
+
+
+```
+
+```{r}
+
+fit<- coxph(Surv(rfstime, status) ~ er, data = gbsg, ties = "efron")
+residus <- resid(fit)
+
+
+plot(residus, x=gbsg$er, xlab='', ylab ="Résidus de martingale", cex=0.75, ylim=c(-1,1))
+lines(lowess(x= gbsg$er ,y=residus,iter=0),lty=2 , col="red")
+
+
+
+```
+
+
+```{r}
+
+fit<- coxph(Surv(rfstime, status) ~ nodes, data = gbsg, ties = "efron")
+residus <- resid(fit)
+
+
+plot(residus, x=gbsg$nodes, xlab='', ylab ="Résidus de martingale", cex=0.75, ylim=c(-1,1))
+lines(lowess(x= gbsg$nodes ,y=residus,iter=0),lty=2 , col="red")
+
+
+```
+
+
+```{r}
+
+fit<- coxph(Surv(rfstime, status) ~ age, data = gbsg, ties = "efron")
+residus <- resid(fit)
+
+
+plot(residus, x=gbsg$age, xlab='', ylab ="Résidus de martingale", cex=0.75, ylim=c(-1,1))
+lines(lowess(x= gbsg$age ,y=residus,iter=0),lty=2 , col="red")
+
+
+```
