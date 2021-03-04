@@ -1,0 +1,63 @@
+---
+title: "DATA melanoma PROJETM1"
+author: "Burgat"
+date: "04/03/2021"
+output: pdf_document
+---
+## Analyse des données Melanoma
+
+```{r setup, include=FALSE}
+library(readr)
+Melanoma <- read_csv("Melanoma.csv")
+View(Melanoma)
+```
+
+
+```{r}
+library(survival)
+library(survminer)
+library(ggplot2)
+library(ggpubr)
+```
+#The Melanoma data frame has data on 205 patients in Denmark with malignant melanoma.
+#This data frame contains the following columns:
+#time
+#survival time in days, possibly censored.
+#status
+#1 died from melanoma, 2 alive, 3 dead from other causes.
+#sex
+#1 = male, 0 = female.
+#age
+#age in years.
+#year
+#of operation.
+#thickness
+#tumour thickness in mm.
+#ulcer
+#1 = presence, 0 = absence.
+
+```{r pressure, echo=FALSE}
+strata.thickness <- cut(Melanoma$thickness,breaks=c(0,5,20))
+z<- survfit(Surv(time, status) ~ strata.thickness, type = "kaplan-meier", conf.type = "plain", Melanoma)
+ggsurvplot(z, data = Melanoma)
+ggsurvplot(z, fun = "cloglog", data = Melanoma, xlim=c(50,5000))
+```
+
+
+```{r}
+fitall<- coxph(Surv(time, status) ~ age + year + ulcer + sex + thickness, data = Melanoma)
+ftestall<- cox.zph(fitall)
+fitall
+ftestall
+```
+
+
+```{r}
+fit<- coxph(Surv(time, status) ~ strata.thickness, data = Melanoma)
+ftest<- cox.zph(fit, transform = "identity")
+plot(ftest, ylim = c(-0.1,0.2), var="strata.thickness", resid=TRUE)
+abline(h=0,lty=3)
+abline(h=fit$coefficients["sex"], lty=2, lw=2, col="blue")
+```
+
+
