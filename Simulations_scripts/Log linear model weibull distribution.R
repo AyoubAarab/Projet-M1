@@ -8,7 +8,7 @@ Z <- runif(50, 15, 80)
 X = exp(mu+gamma*Z+sigma*W)
 #R1 = 1 - exp(-exp((log(50)-mu-gamma*55.4)/sigma))
 
-T = dweibull(1/sigma,exp(mu+gamma*Z))
+T = rweibull(1/sigma,exp(mu+gamma*Z))
 T1 = pweibull(1/sigma,exp(mu+gamma*Z))
 
              
