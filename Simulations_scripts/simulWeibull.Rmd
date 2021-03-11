@@ -1,0 +1,87 @@
+---
+title: "2NDDATA"
+author: "Zakaria LAABSI"
+date: "04/03/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+library(survival)
+library(survminer)
+library(ggplot2)
+
+set.seed(1234)
+
+```
+
+
+```{r}
+
+# Risque de base : Weibull
+
+# N = taille de l'échantillon    
+# lambda = paramètre d'échelle dans h0() (scale parameter)
+# alpha = paramètre de forme dans h0() (shape parameter)
+# beta = paramètre d'effet fixe
+# rateC = paramètre du taux de la distribution exponentielle de C
+
+simulWeibull <- function(N, lambda, alpha, beta, rateC)
+{
+  # covariable --> N essais de Bernoulli
+  x <- sample(x=c(0, 1), size=N, replace=TRUE, prob=c(0.5, 0.5))
+
+  # Temps d'événements latents de Weibull
+  v <- runif(n=N) #n = nombre d'observations
+  T <- (- log(v)/(lambda * exp(x*beta)))^(1 / alpha)
+
+  # Temps de censure suivant distribution exponentielle
+  C <- rexp(n=N, rate=rateC) 
+
+  # Temps de suivi et indicateurs d'événements
+  timeT <- T
+  time <- pmin(T, C) # Z = min(T,C)
+  status <- as.numeric(T <= C) # Δ = 1(T < C)
+
+  # Observations (Zi, Δi) (dataset)
+  data.frame(id=1:N,
+             time=time,
+             timeT = timeT,
+             status=status,
+             x=x)
+}
+
+#status 0 = censuré
+#status 1 = non censuré
+
+
+```
+
+```{r}
+datasimul <- simulWeibull(N=100, lambda=0.01, alpha=1, beta=-0.6, rateC=0.001)
+```
+
+
+
+```{r}
+y<- survfit(Surv(time, status) ~ x, type = "kaplan-meier", conf.type = "plain", datasimul)
+
+ggsurvplot(y, data = datasimul)
+ggsurvplot(y, fun = "cloglog", data = datasimul, xlim=c(50,5000))
+```
+
+
+
+
+```{r}
+fit <- coxph(Surv(time, status) ~ x, data=datasimul)
+
+
+
+```
+
