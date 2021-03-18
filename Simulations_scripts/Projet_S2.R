@@ -4,22 +4,22 @@
 #mu=10
 #gamma=1
 #sigma=0.5
-
+n=50
 mu=0.2
 gamma=0.3
 sigma=0.5
-Z <- as.numeric(runif(50, 15, 80) < 50)
-U <- runif(50, 0, 1)
+Z <- as.numeric(runif(n, 15, 80) < 50)
+U <- runif(n, 0, 1)
 W <- log(-log(1-U))
 X <- exp(mu+ gamma*Z+ sigma*W)
 
-T=rweibull(50, 1/sigma, exp(mu+gamma*Z))
+T=rweibull(n, 1/sigma, exp(mu+gamma*Z))
 #View(T)
 #View(X)
 
 
 mu=0.1
-C=rexp(50,mu)
+C=rexp(n,mu)
 
 time=pmin(X,C)
 #indicatrice de l'évènement d'intérêt
@@ -28,7 +28,7 @@ time=pmin(X,C)
 #ou bien
 status=as.numeric(X<C)
 #View(Time)
-D<-data.frame(id=1:50, time = time, status=status, Z=Z)
+D<-data.frame(id=1:n, time = time, status=status, Z=Z)
 D
 View(D)
 
